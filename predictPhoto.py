@@ -5,24 +5,22 @@ import numpy as np
 def draw_boxes(image, results, conf_threshold=0.25):
     img = image.copy()
     
-    for r in results:
-        boxes = r.boxes
-        for box in boxes:
-            # Get box coordinates, confidence and class
-            coords = box.xyxy[0].cpu().numpy()
-            conf = float(box.conf)
-            cls = int(box.cls)
+    boxes = results[0].boxes
+    for box in boxes:
+    # Get box coordinates, confidence and class
+        coords = box.xyxy[0].cpu().numpy()
+        conf = float(box.conf)
+        cls = int(box.cls)
             
-            if conf > conf_threshold:
-                x1, y1, x2, y2 = map(int, coords)
+        if conf > conf_threshold:
+            x1, y1, x2, y2 = map(int, coords)
                 
                 # Draw rectangle
-                cv2.rectangle(img, (x1, y1), (x2, y2), (0, 255, 0), 2)
+            cv2.rectangle(img, (x1, y1), (x2, y2), (0, 255, 0), 2)
                 
                 # Add label
-                label = f'Class {cls}: {conf:.2f}'
-                cv2.putText(img, label, (x1, y1-10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
-    
+            label = f'Class {cls}: {conf:.2f}'
+            cv2.putText(img, label, (x1, y1-10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2) 
     return img
 
 # Load model
