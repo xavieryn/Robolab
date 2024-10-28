@@ -3,10 +3,10 @@ import torch
 from ultralytics import YOLOv10 as YOLO
 
 # see if you need to change the training set
-model = YOLO('./runs/detect/train3/weights/last.pt')  # or another version of YOLOv10 (e.g., yolov10s.pt for small)
+model = YOLO('./runs/detect/train14/weights/last.pt')  # or another version of YOLOv10 (e.g., yolov10s.pt for small)
 
 # Load the video file
-input_video_path = 'video.mp4'
+input_video_path = 'video3.mp4'
 output_video_path = 'out.mp4'
 
 # Open the video using OpenCV
