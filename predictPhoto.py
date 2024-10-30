@@ -1,6 +1,7 @@
 from ultralytics import YOLOv10
 import cv2
 import numpy as np
+dict = {0: 'weed', 1:'lettuce'}
 
 def draw_boxes(image, results, conf_threshold=0.25):
     img = image.copy()
@@ -19,7 +20,7 @@ def draw_boxes(image, results, conf_threshold=0.25):
             cv2.rectangle(img, (x1, y1), (x2, y2), (0, 255, 0), 2)
                 
                 # Add label
-            label = f'Class {cls}: {conf:.2f}'
+            label = f'Class {dict[cls]}: {conf:.2f}'
             cv2.putText(img, label, (x1, y1-10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2) 
     return img
 
@@ -27,7 +28,7 @@ def draw_boxes(image, results, conf_threshold=0.25):
 model = YOLOv10('/home/xavier/Robolab/yolov10/runs/detect/train3/weights/last.pt')
 
 # Read image
-image_path = '/home/xavier/Robolab/test/0B9odeEn.jpg'
+image_path = '//home/xavier/Robolab/predictPhotoData/0Cw6Uz8z.jpg'
 image = cv2.imread(image_path)
 
 # Run inference
@@ -37,7 +38,8 @@ results = model(image)
 output_image = draw_boxes(image, results)
 
 # Save the result
-output_path = '/home/xavier/Robolab/test/output_detailed.jpg'
+output_path = '/home/xavier/Robolab/predictPhotoData/output_detailed.jpg'
 cv2.imwrite(output_path, output_image)
 
 print(f"Annotated image saved to: {output_path}")
+

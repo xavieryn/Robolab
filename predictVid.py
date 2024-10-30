@@ -6,8 +6,8 @@ from ultralytics import YOLOv10 as YOLO
 model = YOLO('./runs/detect/train14/weights/last.pt')  # or another version of YOLOv10 (e.g., yolov10s.pt for small)
 
 # Load the video file
-input_video_path = 'video3.mp4'
-output_video_path = 'out.mp4'
+input_video_path = '/home/xavier/Robolab/videos/video3.mp4'
+output_video_path = '/home/xavier/Robolab/videos/output.mp4'
 
 # Open the video using OpenCV
 video_capture = cv2.VideoCapture(input_video_path)
@@ -22,6 +22,7 @@ total_frames = int(video_capture.get(cv2.CAP_PROP_FRAME_COUNT))
 fourcc = cv2.VideoWriter_fourcc(*'mp4v')  # Codec
 out_video = cv2.VideoWriter(output_video_path, fourcc, fps, (frame_width, frame_height))
 
+dict = {0: 'weed', 1:'lettuce'}
 # Iterate over each frame
 frame_count = 0
 while video_capture.isOpened():
@@ -29,21 +30,30 @@ while video_capture.isOpened():
     if not ret:
         break
     
-    # Apply YOLOv10 object detection
     results = model(frame)[0]
-    
+
+    # Apply YOLOv10 object detection
+    img = frame.copy()
+    boxes = results[0].boxes
+
     # Iterate through the detections and draw bounding boxes
-    for result in results.boxes.data.tolist():  # Each detection in the format [x1, y1, x2, y2, conf, class]
-        x1, y1, x2, y2, conf, cls = result[:6]
-        label = f'{model.names[cls]} {conf:.2f}'
-        
-        # Draw bounding box and label on the frame
-        if conf >= 0.3: # Might need to be higher or lower, test around
-                cv2.rectangle(frame, (int(x1), int(y1)), (int(x2), int(y2)), (0, 0, 255), 4)  # Bounding box
-        # cv2.putText(frame, label, (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 2)
-    
+    for box in boxes:  # Each detection in the format [x1, y1, x2, y2, conf, class]
+        coords = box.xyxy[0].cpu().numpy()
+        conf = float(box.conf)
+        cls = int(box.cls)
+            
+        if conf > .3:
+            x1, y1, x2, y2 = map(int, coords)
+                
+                # Draw rectangle
+            cv2.rectangle(img, (x1, y1), (x2, y2), (0, 255, 0), 2)
+                
+                # Add label
+            label = f'Class {dict[cls]}: {conf:.2f}'
+            cv2.putText(img, label, (x1, y1-10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2) 
     # Write the processed frame to the output video
-    out_video.write(frame)
+
+    out_video.write(img)
     
     # Print progress
     frame_count += 1
