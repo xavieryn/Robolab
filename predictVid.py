@@ -1,15 +1,16 @@
 import cv2
 import torch
 from ultralytics import YOLOv10 as YOLO
+import time
 
-# see if you need to change the training set
-model = YOLO('./runs/detect/train14/weights/last.pt')  # or another version of YOLOv10 (e.g., yolov10s.pt for small)
+# Load the model
+model = YOLO('./runs/detect/train14/weights/last.pt')
 
-# Load the video file
+# Video paths
 input_video_path = '/home/xavier/Robolab/videos/video3.mp4'
 output_video_path = '/home/xavier/Robolab/videos/output.mp4'
 
-# Open the video using OpenCV
+# Open the video
 video_capture = cv2.VideoCapture(input_video_path)
 
 # Get video properties
@@ -18,48 +19,62 @@ frame_height = int(video_capture.get(cv2.CAP_PROP_FRAME_HEIGHT))
 fps = int(video_capture.get(cv2.CAP_PROP_FPS))
 total_frames = int(video_capture.get(cv2.CAP_PROP_FRAME_COUNT))
 
-# Define the codec and create VideoWriter object to save output video
-fourcc = cv2.VideoWriter_fourcc(*'mp4v')  # Codec
+# Setup video writer
+fourcc = cv2.VideoWriter_fourcc(*'mp4v')
 out_video = cv2.VideoWriter(output_video_path, fourcc, fps, (frame_width, frame_height))
 
-dict = {0: 'weed', 1:'lettuce'}
-# Iterate over each frame
+# Class dictionary
+class_dict = {0: 'weed', 1: 'lettuce'}
+
+# Process frames
 frame_count = 0
+startTime= time.time()
+
 while video_capture.isOpened():
-    ret, frame = video_capture.read()  # Read a frame
+    ret, frame = video_capture.read()
     if not ret:
         break
-    
-    results = model(frame)[0]
 
     # Apply YOLOv10 object detection
-    img = frame.copy()
-    boxes = results[0].boxes
-
-    # Iterate through the detections and draw bounding boxes
-    for box in boxes:  # Each detection in the format [x1, y1, x2, y2, conf, class]
-        coords = box.xyxy[0].cpu().numpy()
-        conf = float(box.conf)
-        cls = int(box.cls)
+    results = model(frame)[0]
+    # Process detections
+    for result in results.boxes.data.tolist():
+        x1, y1, x2, y2, conf, cls = result[:6]
+        
+        # Convert coordinates and class to proper types
+        x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
+        cls = int(cls)  # Ensure class index is integer
+        
+        # Only process confident detections
+        if conf >= 0.3:
+            # Draw bounding box
+            cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 0, 255), 4)
             
-        if conf > .3:
-            x1, y1, x2, y2 = map(int, coords)
-                
-                # Draw rectangle
-            cv2.rectangle(img, (x1, y1), (x2, y2), (0, 255, 0), 2)
-                
-                # Add label
-            label = f'Class {dict[cls]}: {conf:.2f}'
-            cv2.putText(img, label, (x1, y1-10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2) 
-    # Write the processed frame to the output video
+            # Prepare label text with class name and confidence
+            label = f'{class_dict[cls]} {conf:.2f}'
+            
+            # Add label text
+            cv2.putText(frame, 
+                       label, 
+                       (x1, max(y1 - 10, 20)),  # Ensure text doesn't go above frame
+                       cv2.FONT_HERSHEY_SIMPLEX, 
+                       0.5, 
+                       (255, 0, 0), 
+                       2)
 
-    out_video.write(img)
+    # Write the processed frame
+    out_video.write(frame)
     
-    # Print progress
+    # Update progress
     frame_count += 1
-    print(f'Processed frame {frame_count}/{total_frames}')
+    if frame_count % 10 == 0:  # Print every 10 frames to reduce console output
+        print(f'Processed frame {frame_count}/{total_frames}')
+endTime = time.time()
 
-# Release resources
+total = endTime - startTime
+print("It took ", total, " seconds to run this.")
+print("It was ", total_frames / total , 'fps (total frames/total seconds)')
+# Cleanup
 video_capture.release()
 out_video.release()
 cv2.destroyAllWindows()
