@@ -3,8 +3,11 @@ import cv2
 import math 
 # start webcam
 cap = cv2.VideoCapture(0)
+
 cap.set(3, 1280)
 cap.set(4, 720)
+
+# USE THE YOLOTEST CONDA ENVIRONMENT
 
 # model
 model = YOLO('./runs/detect/train14/weights/last.pt')  # or another version of YOLOv10 (e.g., yolov10s.pt for small)
@@ -15,7 +18,7 @@ classNames = ["Lettuce", "Weed"]
 
 while True:
     success, img = cap.read()
-    results = model(img, stream=True)
+    results = model(img, stream=True) # THIS SAYS THAT THE INPUT IS A STREAM
 
     # coordinates
     for r in results:
