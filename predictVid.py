@@ -1,14 +1,14 @@
 import cv2
 import torch
-from ultralytics import YOLOv10 as YOLO
+from ultralytics import YOLO
 import time
 
 # Load the model
-model = YOLO('./runs/detect/train14/weights/last.pt')
+model = YOLO('/home/irene/Robolab/last.pt', task='segment')
 
 # Video paths
-input_video_path = '/home/xavier/Robolab/videos/video3.mp4'
-output_video_path = '/home/xavier/Robolab/videos/output.mp4'
+input_video_path = '/home/irene/Robolab/videos/video3.mp4'
+output_video_path = '/home/irene/Robolab/videos/output.mp4'
 
 # Open the video
 video_capture = cv2.VideoCapture(input_video_path)
@@ -25,7 +25,7 @@ out_video = cv2.VideoWriter(output_video_path, fourcc, fps, (frame_width, frame_
 
 # Class dictionary
 class_dict = {0: 'weed', 1: 'lettuce'}
-
+array = ['weed','lettuce']
 # Process frames
 frame_count = 0
 startTime= time.time()
